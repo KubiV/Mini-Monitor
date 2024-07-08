@@ -1,33 +1,37 @@
+#define BAUD_RATE 115200
+#define OUT_PIN 2
+#define SCK_PIN 3
+
 void setup() {
-  pinMode(2, INPUT);   // Connect HX710 OUT to Arduino pin 2
-  pinMode(3, OUTPUT);  // Connect HX710 SCK to Arduino pin 3
-  Serial.begin(115200);
+  pinMode(OUT_PIN, INPUT);   // Připoj modul HX710 OUT pin na Arduino např. pin D2
+  pinMode(SCK_PIN, OUTPUT);  // Připoj modul HX710 SCK pin na Arduino např. pin D3
+  Serial.begin(BAUD_RATE);
 }
 
 void loop() {
-  // wait for the current reading to finish
-  while (digitalRead(2)) {}
+  // čekání na konec čtení
+  while (digitalRead(OUT_PIN)) {}
 
-  // read 24 bits
+  // přečti všech 24 bitů
   long result = 0;
   for (int i = 0; i < 24; i++) {
-    digitalWrite(3, HIGH);
-    digitalWrite(3, LOW);
+    digitalWrite(SCK_PIN, HIGH);
+    digitalWrite(SCK_PIN, LOW);
     result = result << 1;
-    if (digitalRead(2)) {
+    if (digitalRead(OUT_PIN)) {
       result++;
     }
   }
 
-  // get the 2s compliment
+  // převěď na dvojkový doplněk - způsob řešení záporných čísel
   result = result ^ 0x800000;
 
-  // pulse the clock line 3 times to start the next pressure reading
+  // 3x pulz na hodinový pin pro začátek měření
   for (char i = 0; i < 3; i++) {
-    digitalWrite(3, HIGH);
-    digitalWrite(3, LOW);
+    digitalWrite(SCK_PIN, HIGH);
+    digitalWrite(SCK_PIN, LOW);
   }
 
-  // display pressure
+  // zobraz hodnotu
   Serial.println(result);
 }
